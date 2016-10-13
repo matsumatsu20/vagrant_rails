@@ -1,0 +1,2 @@
+# vagrant_rails
+vagrantとansibleでrails5の開発環境を作る
