@@ -1,0 +1,9 @@
+[all:vars]
+stage=local
+ansible_connection=local
+
+[web]
+localhost
+
+[local]
+localhost

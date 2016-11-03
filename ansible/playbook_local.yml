@@ -1,0 +1,14 @@
+- name: localhost role.
+  hosts: localhost
+  become: yes
+  vars:
+    ruby_version: 2.3.1
+    node_version: 4.4.4
+    java_version: jdk-8u101-linux-x64
+    java_version_short: 8u101-b13
+    git_version: 2.9.2
+
+  roles:
+    - essential_tools
+    - ruby
+    - rails

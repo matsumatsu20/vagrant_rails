@@ -1,0 +1,26 @@
+---
+- name: yum fastestmirror for ja
+  lineinfile:
+    dest=/etc/yum/pluginconf.d/fastestmirror.conf
+    regexp="^#include_only.*"
+    line="include_only=ja"
+    state=present
+    backrefs=yes
+    
+- name: install essential tools
+  yum: name={{ item }} state=present
+  with_items:
+    - jq
+    - vim
+    - tree
+    - dstat
+    - sysstat
+    - htop
+    - iotop
+    - strace
+    - lsof
+    - expect
+    - bash-completion
+    - bind-utils
+
+- include: git_install.yml

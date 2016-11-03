@@ -1,0 +1,52 @@
+- name: Install dependencies
+  yum: name={{ item }} state=present
+  with_items:
+    - gcc
+    - gcc-c++
+    - openssl-devel
+    - readline-devel
+    - zlib-devel
+    - mysql-devel
+    - sqlite-devel
+
+- name: Install rbenv
+  git: repo=https://github.com/sstephenson/rbenv.git dest={{ rbenv_root|default('/usr/local/rbenv') }} update=no executable=/usr/local/bin/git
+
+- name: Install ruby-build
+  git: repo=https://github.com/sstephenson/ruby-build.git dest={{ rbenv_root|default('/usr/local/rbenv') }}/plugins/ruby-build update=no executable=/usr/local/bin/git
+
+- name: create shims dir
+  file: path={{ rbenv_root|default('/usr/local/rbenv') }}/shims state=directory
+
+- name: create versions dir
+  file: path={{ rbenv_root|default('/usr/local/rbenv') }}/versions state=directory
+
+- name: change owner of install dir
+  file: path={{ rbenv_root|default('/usr/local/rbenv') }} owner={{ rbenv_owner|default('vagrant') }} mode=g+rwxX recurse=yes state=directory
+
+- name: Set rbenv env file
+  template: src=rbenv.sh.j2 dest=/etc/profile.d/rbenv.sh mode=0775
+
+- name: check ruby
+  shell: /bin/bash -lc "rbenv versions | grep {{ ruby_version }}" creates={{ rbenv_root|default('/usr/local/rbenv') }}/versions/{{ ruby_version }}
+  register: ruby_installed
+  ignore_errors: True
+
+- name: Install ruby with rbenv
+  become_user: vagrant
+  shell: bash -lc "CONFIGURE_OPTS="--disable-install-rdoc" rbenv install {{ ruby_version }}"
+  when: ruby_installed | failed
+
+- name: "set ruby {{ ruby_version }} for system"
+  become_user: vagrant
+  shell: bash -lc "rbenv global {{ ruby_version }} && rbenv rehash"
+  when: ruby_installed | failed
+
+- name: install util gem
+  become_user: vagrant
+  gem: name={{ item }} executable={{ rvenv_root|default('/usr/local/rbenv') }}/versions/{{ ruby_version }}/bin/gem user_install=no
+  with_items:
+    - bundler
+
+- name: change permission # https://github.com/rbenv/ruby-build/issues/400
+  shell: find {{ rbenv_root|default('/usr/local/rbenv') }} -type d -exec chmod 775 '{}' \;
